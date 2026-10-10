@@ -20,13 +20,20 @@ Civilens is a CivicTech platform designed to improve transparency and coordinati
 
 4. Technologies Used
 
-- Frontend: To be updated based on the technologies used.
-- Backend: To be updated if implemented.
-- Database: To be updated if implemented.
+- Frontend: HTML,CSS,Javascript
+- Backend: pythonflash
+- Database: dbase
 
 5. Setup Instructions
 
-Setup instructions will be added after the website development is completed. They will include the prerequisites, installation steps, and instructions to run the project locally.
+Setup Instructions
+
+1. Download or clone this repository to your computer.
+2. Open the project folder in Visual Studio Code.
+3. Open the "index.html" file in your web browser.
+4. Explore the Civic Lens features, including the Public Works Directory, Report Issue, Track Complaint, and Dashboard.
+
+Requirements: A web browser and a code editor.
 
 
 7. Project Goal
