@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CivicLens — Public Works Transparency</title>
+<style>
+:root{--navy:#0b2545;--blue:#13497b;--teal:#0f9d9a;--bg:#f4f7fb;--card:#fff;--text:#16283b;--muted:#5d7186;--danger:#b42318;--ok:#087443;--warn:#8a4b08;--border:#d8e1ea;--focus:#1d4ed8}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.5}
+a{color:var(--blue)}button,input,select,textarea{font:inherit}button{cursor:pointer}
+.container{max-width:1150px;margin:auto;padding:1rem}
+header{background:var(--navy);color:#fff}.top{display:flex;gap:1rem;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:.8rem 0}
+.brand{font-weight:800;font-size:1.2rem}.brand span{background:var(--teal);border-radius:8px;padding:.1rem .4rem;margin-left:.2rem}
+nav{display:flex;gap:.3rem;flex-wrap:wrap}nav button{background:none;border:0;color:#dbeafe;padding:.5rem .65rem;border-radius:8px}
+nav button[aria-current]{background:#ffffff22;color:#fff}
+.notice{background:#fff7ed;border:1px solid #fed7aa;color:#7c2d12;padding:.6rem .8rem;border-radius:10px;margin:.75rem 0;font-size:.92rem}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1rem}
+.grid{display:grid;gap:1rem}.stats{grid-template-columns:repeat(auto-fit,minmax(155px,1fr))}.cards{grid-template-columns:repeat(auto-fit,minmax(290px,1fr))}
+.stat{border-left:5px solid var(--teal)}.stat strong{display:block;font-size:1.6rem}
+label{display:block;font-weight:600;margin:.6rem 0 .25rem}input,select,textarea{width:100%;padding:.6rem;border:1px solid var(--border);border-radius:9px}
+input:focus,select:focus,textarea:focus,button:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.error{color:var(--danger);font-size:.88rem;margin:.25rem 0}.ok{color:var(--ok)}.warn{color:var(--warn)}.muted{color:var(--muted)}.small{font-size:.88rem}
+.btn{background:var(--blue);color:#fff;border:0;border-radius:9px;padding:.65rem 1rem}.btn.sec{background:#e8eef5;color:var(--navy)}.btn:disabled{opacity:.6;cursor:not-allowed}
+.badge{padding:.15rem .5rem;border-radius:999px;font-size:.78rem;font-weight:700}.b-active{background:#dcfce7;color:#14532d}.b-planned{background:#e0f2fe;color:#075985}.b-completed{background:#ede9fe;color:#4c1d95}.b-overdue{background:#fee2e2;color:#7f1d1d}
+.hidden{display:none!important}table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:.55rem;border-bottom:1px solid var(--border)}
+dialog{border:0;border-radius:14px;max-width:min(720px,94vw);padding:0}dialog::backdrop{background:#0b254599}.modal{padding:1.1rem}
+@media(max-width:640px){.container{padding:.7rem}}
+</style>
+</head>
+<body>
+<header><div class="container top">
+<div class="brand">Civic<span>Lens</span></div>
+<nav aria-label="Main">
+<button data-p="dashboard">Dashboard</button><button data-p="projects">Projects</button>
+<button data-p="conflicts">Conflicts</button><button data-p="complaint">Report Issue</button>
+<button data-p="track">Track</button><button data-p="staff">Staff</button>
+</nav>
+<div><label class="small" for="lang" style="color:#dbeafe">Language</label>
+<select id="lang"><option value="en">English</option><option value="ta">தமிழ்</option><option value="hi">हिन्दी</option></select></div>
+</div></header>
+
+<main class="container">
+<p class="notice" id="notice"></p>
+
+<section id="dashboard" class="page">
+<h1 id="h-dashboard"></h1><div class="grid stats" id="stats"></div>
+<div class="grid" style="margin-top:1rem">
+<div class="card"><h2 id="h-updates"></h2><div id="updates"></div></div>
+<div class="card"><h2 id="h-milestones"></h2><div id="milestones"></div></div>
+</div>
+</section>
+
+<section id="projects" class="page hidden">
+<h1 id="h-projects"></h1>
+<div class="card"><label for="q"></label><input id="q" type="search">
+<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr))">
+<div><label for="fs"></label><select id="fs"></select></div>
+<div><label for="fl"></label><select id="fl"></select></div>
+</div></div>
+<div class="grid cards" id="plist" style="margin-top:1rem"></div>
+</section>
+
+<section id="conflicts" class="page hidden">
+<h1 id="h-conflicts"></h1><p class="warn" id="conflictNote"></p><div class="grid cards" id="clist"></div>
+</section>
+
+<section id="complaint" class="page hidden">
+<h1 id="h-complaint"></h1>
+<form id="cform" class="card" novalidate>
+<label for="cat"></label><select id="cat"></select>
+<label for="loc"></label><input id="loc"><p class="error" id="e-loc"></p>
+<label for="desc"></label><textarea id="desc" rows="5"></textarea><p class="error" id="e-desc"></p>
+<label><input type="checkbox" id="consent"> <span id="consentText"></span></label><p class="error" id="e-consent"></p>
+<p id="dup" class="warn hidden"></p>
+<button class="btn" id="csubmit"></button>
+</form><div id="cresult" class="card hidden" style="margin-top:1rem"></div>
+</section>
+
+<section id="track" class="page hidden">
+<h1 id="h-track"></h1>
+<form id="tform" class="card" novalidate>
+<label for="tref"></label><input id="tref">
+<label for="tsec"></label><input id="tsec"><p class="error" id="e-track"></p>
+<button class="btn" id="tsubmit"></button>
+</form><div id="tresult" class="card hidden" style="margin-top:1rem"></div>
+</section>
+
+<section id="staff" class="page hidden">
+<h1 id="h-staff"></h1>
+<div id="login" class="card">
+<p class="muted" id="loginHelp"></p>
+<label for="email"></label><input id="email" type="email" autocomplete="username">
+<label for="pass"></label><input id="pass" type="password" autocomplete="current-password">
+<p class="error" id="e-login"></p><button class="btn" id="signin"></button>
+</div>
+<div id="panel" class="hidden">
+<div class="card"><h2 id="h-manage"></h2><div id="manage"></div></div>
+<button class="btn sec" id="signout" style="margin-top:1rem"></button>
+</div>
+</section>
+</main>
+
+<dialog id="dlg"><div class="modal" id="dlgBody"></div></dialog>
+<footer class="container muted small" id="footer"></footer>
+
+<script type="module">
+const SUPABASE_URL="https://YOUR-PROJECT.supabase.co";
+const SUPABASE_ANON_KEY="YOUR-PUBLISHABLE-ANON-KEY";
+const LIVE=!("YOUR-PROJECT"===SUPABASE_URL||"YOUR-PUBLISHABLE-ANON-KEY"===SUPABASE_ANON_KEY);
+let sb=null,user=null;
+if(LIVE){const{createClient}=await import("https://esm.sh/@supabase/supabase-js@2");sb=createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+const{data}=await sb.auth.getUser();user=data.user}
+
+const T={en:{dashboard:"Public Works Dashboard",projects:"Public Works Directory",conflicts:"Potential Repeat-Digging Conflicts",complaint:"Report a Public Issue",track:"Track Your Complaint",staff:"Staff Dashboard",updates:"Recent updates",milestones:"Upcoming target dates",search:"Search project, ID, locality, department or type",status:"Status",locality:"Locality",category:"Category",description:"Describe the issue",consent:"I understand this may be reviewed by authorized staff and consent to the necessary information being used for follow-up.",submit:"Submit complaint",ref:"Tracking reference",secret:"Tracking secret",track:"Track complaint",email:"Email",password:"Password",signin:"Sign in",signout:"Sign out",total:"Total projects",active:"Active",completed:"Completed",overdue:"Overdue",open:"Open complaints",resolved:"Resolved complaints",demo:"Demo Mode: fictional data only. Complaints are not securely stored or shared.",live:"Public prototype. Complaint details remain private; project status and public updates are visible to everyone.",conflictWarn:"Potential conflict — requires human verification. This is not proof of corruption or unnecessary work.",noConflict:"No potential conflicts found.",dup:"A similar complaint may already exist. Continue only if yours is distinct.",eLoc:"Please enter a locality.",eDesc:"Please provide at least 20 characters.",eConsent:"Please confirm consent.",eTrack:"Incorrect reference or secret.",budget:"Approved budget",spent:"Spent",progress:"Progress",staffOnly:"Staff sign-in is required.",demoStaff:"Demo staff access is simulated. Connect Supabase and configure RLS for real secure staff access.",footer:"Independent Civic Technology Prototype — Not an Official Government Service."},
+ta:{dashboard:"பொதுப்பணிகள் டாஷ்போர்டு",projects:"பொதுப்பணிகள் அட்டவணை",conflicts:"மறு அகழ்வு சாத்தியமான மோதல்கள்",complaint:"பொது பிரச்சினையை பதிவு செய்யுங்கள்",track:"உங்கள் புகாரை கண்காணிக்கவும்",staff:"ஊழியர் டாஷ்போர்டு",updates:"சமீபத்திய புதுப்பிப்புகள்",milestones:"வரவிருக்கும் இலக்கு தேதிகள்",search:"திட்டம், ஐடி, பகுதி, துறை அல்லது வகை தேடுங்கள்",status:"நிலை",locality:"பகுதி",category:"வகை",description:"பிரச்சினையை விவரிக்கவும்",consent:"அங்கீகரிக்கப்பட்ட ஊழியர்கள் இதை மறுஆய்வு செய்யலாம் என்பதை உணர்ந்து தேவையான தகவல் பயன்படுத்தப்படுவதற்கு ஒப்புக்கொள்கிறேன்.",submit:"புகார் அனுப்பு",ref:"கண்காணிப்பு குறியீடு",secret:"கண்காணிப்பு ரகசியம்",track:"கண்காணி",email:"மின்னஞ்சல்",password:"கடவுச்சொல்",signin:"உள்நுழை",signout:"வெளியேறு",total:"மொத்த திட்டங்கள்",active:"செயலில்",completed:"முடிந்தது",overdue:"தாமதம்",open:"திறந்த புகார்கள்",resolved:"தீர்க்கப்பட்டவை",demo:"டெமோ முறை: புனைகதை தரவு மட்டுமே. புகார்கள் பாதுகாப்பாக சேமிக்கப்படுவதில்லை.",live:"பொது முன்மாதிரி. புகார் விவரங்கள் தனிப்பட்டவை; திட்ட நிலை மற்றும் பொது புதுப்பிப்புகள் அனைவருக்கும் தெரியும்.",conflictWarn:"சாத்தியமான மோதல் — மனித சரிபார்ப்பு தேவை. இது ஊழலுக்கான ஆதாரம் அல்ல.",noConflict:"சாத்தியமான மோதல்கள் இல்லை.",dup:"ஒத்த புகார் இருக்கலாம். உங்களுடையது வேறுபட்டது எனில் தொடரவும்.",eLoc:"பகுதியை உள்ளிடவும்.",eDesc:"குறைந்தது 20 எழுத்துகள் தேவை.",eConsent:"ஒப்புதலை உறுதிசெய்யவும்.",eTrack:"குறியீடு அல்லது ரகசியம் தவறு.",budget:"ஒப்புக்கொண்ட நிதி",spent:"செலவு",progress:"முன்னேற்றம்",staffOnly:"ஊழியர் உள்நுழைவு தேவை.",demoStaff:"டெமோ ஊழியர் அணுகல் உருவகிக்கப்படுகிறது. உண்மையான பாதுகாப்புக்கு Supabase RLS தேவை.",footer:"சுயாதீன குடிமை தொழில்நுட்ப முன்மாதிரி — அதிகாரப்பூர்வ அரசு சேவை அல்ல."},
+hi:{dashboard:"लोक निर्माण डैशबोर्ड",projects:"लोक निर्माण निर्देशिका",conflicts:"संभावित दोबारा-खुदाई संघर्ष",complaint:"सार्वजनिक समस्या दर्ज करें",track:"अपनी शिकायत ट्रैक करें",staff:"स्टाफ डैशबोर्ड",updates:"हाल के अपडेट",milestones:"आगामी लक्ष्य तिथियाँ",search:"परियोजना, आईडी, क्षेत्र, विभाग या प्रकार खोजें",status:"स्थिति",locality:"क्षेत्र",category:"श्रेणी",description:"समस्या का विवरण दें",consent:"मैं समझता/समझती हूँ कि अधिकृत स्टाफ इसे समीक्षा कर सकता है और आवश्यक जानकारी के उपयोग के लिए सहमत हूँ।",submit:"शिकायत जमा करें",ref:"ट्रैकिंग संदर्भ",secret:"ट्रैकिंग गुप्त कोड",track:"ट्रैक करें",email:"ईमेल",password:"पासवर्ड",signin:"साइन इन",signout:"साइन आउट",total:"कुल परियोजनाएँ",active:"सक्रिय",completed:"पूर्ण",overdue:"विलंबित",open:"खुली शिकायतें",resolved:"निपटाई गई",demo:"डेमो मोड: केवल काल्पनिक डेटा। शिकायतें सुरक्षित संग्रहीत/साझा नहीं होतीं।",live:"सार्वजनिक प्रोटोटाइप। शिकायत विवरण निजी हैं; परियोजना स्थिति और सार्वजनिक अपडेट सभी को दिखते हैं।",conflictWarn:"संभावित संघर्ष — मानव सत्यापन आवश्यक। यह भ्रष्टाचार का प्रमाण नहीं है।",noConflict:"कोई संभावित संघर्ष नहीं।",dup:"इसी तरह की शिकायत मौजूद हो सकती है। अलग होने पर ही आगे बढ़ें।",eLoc:"कृपया क्षेत्र दर्ज करें।",eDesc:"कम से कम 20 अक्षर दें।",eConsent:"कृपया सहमति दें।",eTrack:"संदर्भ या गुप्त कोड गलत है।",budget:"स्वीकृत बजट",spent:"खर्च",progress:"प्रगति",staffOnly:"स्टाफ साइन-इन आवश्यक।",demoStaff:"डेमो स्टाफ एक्सेस सिम्युलेटेड है। वास्तविक सुरक्षा के लिए Supabase RLS आवश्यक है।",footer:"स्वतंत्र नागरिक प्रौद्योगिकी प्रोटोटाइप — आधिकारिक सरकारी सेवा नहीं।"}};
+let lang="en";const t=k=>T[lang][k]??T.en[k]??k;
+
+let projects=[
+{id:"P-1001",title:"Ward 12 Road Resurfacing",locality:"Singanallur",department:"Highways",category:"Roads",status:"active",start:"2026-08-01",target:"2026-11-30",lat:11.0018,lon:77.0292,budget:4500000,spent:1850000,progress:40,update:"Asphalt work began on 5 October."},
+{id:"P-1002",title:"Singanallur Drainage Improvement",locality:"Singanallur",department:"Water Resources",category:"Drainage",status:"active",start:"2026-09-15",target:"2026-12-20",lat:11.0025,lon:77.03,budget:7200000,spent:1200000,progress:18,update:"Pipeline survey completed."},
+{id:"P-1003",title:"City Park Lighting Upgrade",locality:"Gandhipuram",department:"Municipal Administration",category:"Lighting",status:"completed",start:"2026-03-01",target:"2026-06-30",actual:"2026-06-25",lat:11.0183,lon:76.9663,budget:1800000,spent:1750000,progress:100,update:"All 120 lights installed."},
+{id:"P-1004",title:"Bus Stand Footpath Repair",locality:"Gandhipuram",department:"Highways",category:"Roads",status:"active",start:"2026-05-01",target:"2026-08-31",lat:11.019,lon:76.967,budget:2600000,spent:900000,progress:32,update:"Awaiting material delivery."}];
+let complaints=[];
+const today=()=>new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kolkata",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+const overdue=p=>p.status!=="completed"&&p.target&&p.target<today();
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const badge=p=>{const s=overdue(p)?"overdue":p.status;return `<span class="badge b-${s}">${s}</span>`};
+const money=n=>"₹"+Number(n||0).toLocaleString("en-IN");
+
+async function loadLive(){if(!LIVE)return;const{data,error}=await sb.from("projects").select("*").eq("is_published",true);if(error){alert("Could not load projects: "+error.message);return}if(data?.length)projects=data}
+
+function render(){
+document.documentElement.lang=lang;document.getElementById("notice").textContent=LIVE?t("live"):t("demo");document.getElementById("footer").textContent=t("footer");
+["dashboard","projects","conflicts","complaint","track","staff"].forEach(k=>document.getElementById("h-"+k).textContent=t(k));
+document.getElementById("h-updates").textContent=t("updates");document.getElementById("h-milestones").textContent=t("milestones");
+document.getElementById("q").placeholder=t("search");document.getElementById("fs").previousElementSibling.textContent=t("status");document.getElementById("fl").previousElementSibling.textContent=t("locality");
+document.getElementById("cat").previousElementSibling.textContent=t("category");document.getElementById("loc").previousElementSibling.textContent=t("locality");document.getElementById("desc").previousElementSibling.textContent=t("description");
+document.getElementById("consentText").textContent=t("consent");document.getElementById("csubmit").textContent=t("submit");
+document.getElementById("tref").previousElementSibling.textContent=t("ref");document.getElementById("tsec").previousElementSibling.textContent=t("secret");document.getElementById("tsubmit").textContent=t("track");
+document.getElementById("email").previousElementSibling.textContent=t("email");document.getElementById("pass").previousElementSibling.textContent=t("password");document.getElementById("signin").textContent=t("signin");document.getElementById("signout").textContent=t("signout");
+document.getElementById("loginHelp").textContent=LIVE?"Sign in with an account assigned the staff role by an administrator.":t("demoStaff");
+const a=projects.filter(p=>p.status==="active").length,c=projects.filter(p=>p.status==="completed").length,o=projects.filter(overdue).length,oc=complaints.filter(x=>x.status!=="resolved").length,rc=complaints.filter(x=>x.status==="resolved").length;
+document.getElementById("stats").innerHTML=[[t("total"),projects.length],[t("active"),a],[t("completed"),c],[t("overdue"),o],[t("open"),oc],[t("resolved"),rc]].map(([k,v])=>`<div class="card stat"><span class="muted small">${esc(k)}</span><strong>${v}</strong></div>`).join("");
+document.getElementById("updates").innerHTML=projects.slice(0,4).map(p=>`<p><strong>${esc(p.title)}</strong><br><span class="muted small">${esc(p.update)}</span></p>`).join("");
+document.getElementById("milestones").innerHTML=projects.filter(p=>p.status!=="completed").slice(0,4).map(p=>`<p>${esc(p.title)} — ${esc(p.target)}</p>`).join("");
+renderProjects();renderConflicts();renderStaff();
+}
+
+function renderProjects(){const q=document.getElementById("q").value.toLowerCase(),s=document.getElementById("fs").value,l=document.getElementById("fl").value;
+const list=projects.filter(p=>[p.title,p.id,p.locality,p.department,p.category].join(" ").toLowerCase().includes(q)&&(!s||p.status===s)&&(!l||p.locality===l));
+document.getElementById("plist").innerHTML=list.map(p=>`<article class="card"><h3>${esc(p.title)}</h3><p class="muted small">${esc(p.id)} • ${esc(p.locality)} • ${esc(p.department)}</p><p>${badge(p)}</p><p class="small">${esc(t("budget"))}: ${money(p.budget)}<br>${esc(t("spent"))}: ${money(p.spent)}<br>${esc(t("progress"))}: ${Number(p.progress||0)}%</p><button class="btn sec" data-id="${p.id}">Details</button></article>`).join("")||`<p class="muted">No matching projects.</p>`}
+
+function renderConflicts(){const out=[];const km=(a,b)=>{const R=6371,r=x=>x*Math.PI/180,dLa=r(b.lat-a.lat),dLo=r(b.lon-a.lon);return 2*R*Math.asin(Math.sqrt(Math.sin(dLa/2)**2+Math.cos(r(a.lat))*Math.cos(r(b.lat))*Math.sin(dLo/2)**2))};
+for(let i=0;i<projects.length;i++)for(let j=i+1;j<projects.length;j++){const a=projects[i],b=projects[j];if(a.lat==null||b.lat==null)continue;const d=km(a,b),overlap=a.start<=b.target&&b.start<=a.target;if(d<1&&(a.category===b.category||overlap))out.push({a,b,d,overlap})}
+document.getElementById("clist").innerHTML=out.length?out.map(c=>`<article class="card"><h3>${esc(c.a.title)} ↔ ${esc(c.b.title)}</h3><p class="small">${esc(c.a.locality)} • ${esc(c.b.locality)} • ${esc(Math.round(c.d*1000))} m apart</p><p class="small">${c.overlap?"Overlapping work periods.":"Same work category."}</p><p class="warn small">${esc(t("conflictWarn"))}</p></article>`).join(""):`<p class="muted">${esc(t("noConflict"))}</p>`}
+
+function renderStaff(){document.getElementById("login").classList.toggle("hidden",!!user);document.getElementById("panel").classList.toggle("hidden",!user);
+if(!user)return;document.getElementById("manage").innerHTML=complaints.length?complaints.map(c=>`<p><strong>${esc(c.ref)}</strong> — ${esc(c.category)} • ${esc(c.locality)} • ${esc(c.status)}</p>`).join(""):`<p class="muted">No complaints available.</p>`}
+
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{document.querySelectorAll(".page").forEach(x=>x.classList.add("hidden"));document.getElementById(b.dataset.p).classList.remove("hidden");document.querySelectorAll("nav button").forEach(x=>x.removeAttribute("aria-current"));b.setAttribute("aria-current","page")});
+document.getElementById("lang").onchange=e=>{lang=e.target.value;render()};
+document.getElementById("q").oninput=renderProjects;document.getElementById("fs").onchange=renderProjects;document.getElementById("fl").onchange=renderProjects;
+document.getElementById("plist").onclick=e=>{const id=e.target.dataset.id;if(!id)return;const p=projects.find(x=>x.id===id);document.getElementById("dlgBody").innerHTML=`<h2>${esc(p.title)}</h2><p class="muted">${esc(p.id)} • ${esc(p.department)} • ${esc(p.locality)}</p><p>${badge(p)}</p><p><strong>${esc(t("budget"))}:</strong> ${money(p.budget)}<br><strong>${esc(t("spent"))}:</strong> ${money(p.spent)}<br><strong>${esc(t("progress"))}:</strong> ${Number(p.progress||0)}%</p><p><strong>Start:</strong> ${esc(p.start)}<br><strong>Target:</strong> ${esc(p.target)}${p.actual?`<br><strong>Completed:</strong> ${esc(p.actual)}`:""}</p><p>${esc(p.update)}</p><p class="muted small">Location: ${esc(p.lat)}, ${esc(p.lon)}</p><button class="btn" onclick="document.getElementById('dlg').close()">Close</button>`;document.getElementById("dlg").showModal()};
+
+document.getElementById("cform").onsubmit=async e=>{e.preventDefault();const loc=document.getElementById("loc").value.trim(),desc=document.getElementById("desc").value.trim();let ok=true;
+document.getElementById("e-loc").textContent=document.getElementById("e-desc").textContent=document.getElementById("e-consent").textContent="";
+if(!loc){document.getElementById("e-loc").textContent=t("eLoc");ok=false}if(desc.length<20){document.getElementById("e-desc").textContent=t("eDesc");ok=false}if(!document.getElementById("consent").checked){document.getElementById("e-consent").textContent=t("eConsent");ok=false}if(!ok)return;
+const dup=complaints.some(c=>c.locality.toLowerCase()===loc.toLowerCase()&&c.category===document.getElementById("cat").value);const d=document.getElementById("dup");d.classList.toggle("hidden",!dup);if(dup)d.textContent=t("dup");
+const bytes=crypto.getRandomValues(new Uint8Array(12));const ref="CL-"+Array.from(bytes).map(n=>"ABCDEFGHJKLMNPQRSTUVWXYZ23456789"[n%32]).join("");const secret=Array.from(crypto.getRandomValues(new Uint8Array(16))).map(n=>n.toString(16).padStart(2,"0")).join("");
+if(LIVE){const{error}=await sb.from("complaints").insert({reference_code:ref,tracking_secret_hash:secret,category:document.getElementById("cat").value,description:desc,locality:loc});if(error){alert("Submission failed: "+error.message);return}}
+complaints.push({ref,secret,category:document.getElementById("cat").value,locality:loc,description:desc,status:"submitted"});
+document.getElementById("cresult").classList.remove("hidden");document.getElementById("cresult").innerHTML=`<h2>${LIVE?"Complaint submitted":"Demo complaint recorded"}</h2><p><strong>${esc(t("ref"))}:</strong> ${esc(ref)}</p><p><strong>${esc(t("secret"))}:</strong> <code>${esc(secret)}</code></p><p class="warn">Store these safely. They are shown only once.</p>`;e.target.reset();render()};
+
+document.getElementById("tform").onsubmit=async e=>{e.preventDefault();document.getElementById("e-track").textContent="";const ref=document.getElementById("tref").value.trim().toUpperCase(),sec=document.getElementById("tsec").value.trim();
+let c=complaints.find(x=>x.ref===ref&&x.secret===sec);
+if(LIVE&&!c){const{data,error}=await sb.from("complaints").select("reference_code,category,status,created_at").eq("reference_code",ref).eq("tracking_secret_hash",sec).maybeSingle();if(error||!c&&!data){document.getElementById("e-track").textContent=t("eTrack");return}c=data}
+if(!c){document.getElementById("e-track").textContent=t("eTrack");return}
+document.getElementById("tresult").classList.remove("hidden");document.getElementById("tresult").innerHTML=`<h2>${esc(c.ref)}</h2><p><strong>${esc(t("status"))}:</strong> ${esc(c.status)}</p><p><strong>${esc(t("category"))}:</strong> ${esc(c.category)}</p>`};
+
+document.getElementById("signin").onclick=async()=>{if(!LIVE){user={email:"demo-staff"};render();return}
+const{data,error}=await sb.auth.signInWithPassword({email:document.getElementById("email").value,password:document.getElementById("pass").value});
+if(error){document.getElementById("e-login").textContent=error.message;return}user=data.user;render()};
+document.getElementById("signout").onclick=async()=>{if(LIVE)await sb.auth.signOut();user=null;render()};
+document.getElementById("fs").innerHTML=`<option value="">All</option><option>planned</option><option>active</option><option>completed</option>`;
+document.getElementById("fl").innerHTML=`<option value="">All</option><option>Singanallur</option><option>Gandhipuram</option>`;
+document.getElementById("cat").innerHTML=`<option>Road damage</option><option>Water supply</option><option>Drainage</option><option>Lighting</option><option>Other</option>`;
+await loadLive();render();
+</script>
+</body>
+</html>
